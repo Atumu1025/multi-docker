@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t Atumu1025/react-test -f ./client/Dockerfile.dev
+
+script:
+  - docker run -e CI=true Atumu1025/react-test npm test
+
+after_success:
+  - docker build -t Atumu1025/multi-client ./client
+  - docker build -t Atumu1025/multi-nginx ./nginx
+  - docker build -t Atumu1025/multi-server ./server
+  - docker build -t Atumu1025/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  # Take those images and push them to docker hub
+  - docker push Atumu1025/multi-client 
+  - docker push Atumu1025/multi-nginx 
+  - docker push Atumu1025/multi-server 
+  - docker push Atumu1025/multi-worker 
